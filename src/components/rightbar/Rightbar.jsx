@@ -1,18 +1,37 @@
 import './rightbar.css'
 import { Users } from "../../dummyData";
 import Online from '../online/Online';
+import { useEffect, useState } from 'react';
+import axios from "axios";
+import { Link } from 'react-router-dom';
 
-export default function Rightbar({profile}) {
+export default function Rightbar({user}) {
+    console.log("user info", user)
+    const PF = process.env.REACT_APP_PUBLIC_FOLDER
+    const [friends, setFriends] = useState([]);
+
+    useEffect(() => {
+        const getFriends = async () => {
+            try {
+                const friendList = await axios.get("/users/friends/" + user._id);
+                setFriends(friendList.data);
+            } catch (error) {
+                console.log(error)
+            }
+        }
+        getFriends();
+    }, [user._id])
+
     const HomeRightbar = () => {
         return (
             <>
                 <div className="birthdayContainer">
-                    <img src="assets/gift.png" alt="" className="birthdayImg"/>
+                    <img src={`${PF}gift.png`} alt="" className="birthdayImg"/>
                     <span className="birthdayText">
                         <b>Pola Foster</b> and 3 others have a birthday today.
                     </span>
                 </div>
-                <img src="assets/ad.png" alt="" className="rightbarAd"/>
+                <img src={`${PF}ad.png`} alt="" className="rightbarAd"/>
                 <h4 className="rightbarTitle">Active Friends</h4>
                     <ul className="rightbarFriendList">
                         {Users.map(u=>(
@@ -30,54 +49,38 @@ export default function Rightbar({profile}) {
             <h4 className="rightbarTitle">User Info</h4>
             <div className="rightbarInfo">
                 <div className="rightbarInfoItem">
-                    <span className="rightbarInfoKey">City: </span>
-                    <span className="rightbarInfoValue">Accra </span>
+                    <span className="rightbarInfoKey">City:  </span>
+                    <span className="rightbarInfoValue">{user.city ? user.city : "Not Set"} </span>
                 </div>
                 <div className="rightbarInfoItem">
                     <span className="rightbarInfoKey">Hometown: </span>
-                    <span className="rightbarInfoValue">Accra </span>
+                    <span className="rightbarInfoValue">{user.from ? user.from : "Not Set"} </span>
                 </div>
                 <div className="rightbarInfoItem">
                     <span className="rightbarInfoKey">Relationship: </span>
-                    <span className="rightbarInfoValue">Single </span>
+                    <span className="rightbarInfoValue">{user.relationship === 1 ? "Single" : user.relationship === 2 ? "Married" : "Not Set"}</span> 
                 </div>
             </div>
             <h4 className="rightbarTitle">User Friends</h4>
             <div className="rightbarFollowings">
-                <div className="rightbarFollowing">
-                    <img src="assets/person/1.jpeg" alt="" className="rightbarFollowingImg"/>
-                    <span className="rightbarFollowingName">John Wick</span>
-                </div>
-                <div className="rightbarFollowing">
-                    <img src="assets/person/2.jpeg" alt="" className="rightbarFollowingImg"/>
-                    <span className="rightbarFollowingName">Mabel Watkins</span>
-                </div>
-                <div className="rightbarFollowing">
-                    <img src="assets/person/3.jpeg" alt="" className="rightbarFollowingImg"/>
-                    <span className="rightbarFollowingName">Derek Fisher</span>
-                </div>
-                <div className="rightbarFollowing">
-                    <img src="assets/person/4.jpeg" alt="" className="rightbarFollowingImg"/>
-                    <span className="rightbarFollowingName">Matt Bowman</span>
-                </div>
-                <div className="rightbarFollowing">
-                    <img src="assets/person/5.jpeg" alt="" className="rightbarFollowingImg"/>
-                    <span className="rightbarFollowingName">Gerald Houston </span>
-                </div>
-                <div className="rightbarFollowing">
-                    <img src="assets/person/6.jpeg" alt="" className="rightbarFollowingImg"/>
-                    <span className="rightbarFollowingName">Anna Mason</span>
-                </div>
+                {friends.map(friend=>(
+                    <Link to={"/profile/" + friend.username} style={{textDecoration: "none"}}>
+                    <div className="rightbarFollowing">
+                    <img src={friend.profilePic ? PF + friend.profilePic : PF + "/person/noAvatar.png"} alt="" className="rightbarFollowingImg"/>
+                    <span className="rightbarFollowingName">{friend.username}</span>
+                    </div>
+                    </Link>
+                    ))}
             </div>
 
-            </>
+            </> 
             )
     }
 
     return (
         <div className="rightbar">
             <div className="rightbarWrapper">
-                {profile ? <ProfileRightbar/> : <HomeRightbar/>}
+                {user ? <ProfileRightbar/> : <HomeRightbar/>}
             </div>
         </div>
     )
